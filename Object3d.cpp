@@ -42,13 +42,13 @@ D3D12_INDEX_BUFFER_VIEW Object3d::ibView{};
 std::vector<Object3d::VertexPosNormalUv> Object3d::vertices;
 std::vector<unsigned short> Object3d::indices;
 
-void Object3d::StaticInitialize(ID3D12Device * device, int window_width, int window_height)
+void Object3d::StaticInitialize(ID3D12Device* device, int window_width, int window_height)
 {
 	// nullptrチェック
 	assert(device);
 
 	Object3d::device = device;
-		
+
 	// デスクリプタヒープの初期化
 	InitializeDescriptorHeap();
 
@@ -66,7 +66,7 @@ void Object3d::StaticInitialize(ID3D12Device * device, int window_width, int win
 
 }
 
-void Object3d::PreDraw(ID3D12GraphicsCommandList * cmdList)
+void Object3d::PreDraw(ID3D12GraphicsCommandList* cmdList)
 {
 	// PreDrawとPostDrawがペアで呼ばれていなければエラー
 	assert(Object3d::cmdList == nullptr);
@@ -88,7 +88,7 @@ void Object3d::PostDraw()
 	Object3d::cmdList = nullptr;
 }
 
-Object3d * Object3d::Create()
+Object3d* Object3d::Create()
 {
 	// 3Dオブジェクトのインスタンスを生成
 	Object3d* object3d = new Object3d();
@@ -103,7 +103,7 @@ Object3d * Object3d::Create()
 		return nullptr;
 	}
 	float scale_val = 20;
-	object3d->scale = {scale_val, scale_val, scale_val};
+	object3d->scale = { scale_val, scale_val, scale_val };
 	return object3d;
 }
 
@@ -141,7 +141,7 @@ void Object3d::CameraMoveVector(XMFLOAT3 move)
 void Object3d::InitializeDescriptorHeap()
 {
 	HRESULT result = S_FALSE;
-	
+
 	// デスクリプタヒープを生成	
 	D3D12_DESCRIPTOR_HEAP_DESC descHeapDesc = {};
 	descHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
@@ -332,7 +332,7 @@ void Object3d::LoadTexture()
 	ScratchImage scratchImg{};
 
 	// WICテクスチャのロード
-	result = LoadFromWICFile( L"Resources/tex1.png", WIC_FLAGS_NONE, &metadata, scratchImg);
+	result = LoadFromWICFile(L"Resources/tex1.png", WIC_FLAGS_NONE, &metadata, scratchImg);
 	assert(SUCCEEDED(result));
 
 	ScratchImage mipChain{};
@@ -415,7 +415,7 @@ void Object3d::CreateModel()
 
 	string line;
 
-	while (getline(file,line))
+	while (getline(file, line))
 	{
 		std::istringstream line_stream(line);
 
@@ -431,20 +431,54 @@ void Object3d::CreateModel()
 
 			positions.emplace_back(position);
 
-			VertexPosNormalUv vertex{};
+			/*VertexPosNormalUv vertex{};
 			vertex.pos = position;
-			vertices.emplace_back(vertex);
+			vertices.emplace_back(vertex);*/
 		}
 		if (key == "f") {
 			string index_string;
 
 			while (getline(line_stream, index_string, ' ')) {
 				std::istringstream index_stream(index_string);
-				unsigned short indexPosition;
+				unsigned short indexPosition, indexNormal, indexTexcoord;
+				
 				index_stream >> indexPosition;
+				index_stream.seekg(1, ios_base::cur);
+				index_stream >> indexTexcoord;
+				index_stream.seekg(1, ios_base::cur);
+				index_stream >> indexNormal;
 
-				indices.emplace_back(indexPosition - 1);
+				VertexPosNormalUv vertex{};
+				vertex.pos = positions[indexPosition - 1];
+				vertex.normal = normals[indexNormal - 1];
+				vertex.uv = texcoords[indexTexcoord - 1];
+				vertices.emplace_back(vertex);
+
+				indices.emplace_back((unsigned short)indices.size());
+
+				//indices.emplace_back(indexPosition - 1);
 			}
+		}
+		if (key == "vt")
+		{
+			XMFLOAT2 texcoord{};
+			line_stream >> texcoord.x;
+			line_stream >> texcoord.y;
+
+			texcoord.y = 1.0f - texcoord.y;
+
+			texcoords.emplace_back(texcoord);
+
+		}
+		if (key == "vn")
+		{
+			XMFLOAT3 normal{};
+
+			line_stream >> normal.x;
+			line_stream >> normal.y;
+			line_stream >> normal.z;
+
+			normals.emplace_back(normal);
 		}
 	}
 	file.close();
@@ -700,7 +734,7 @@ void Object3d::Draw()
 	// nullptrチェック
 	assert(device);
 	assert(Object3d::cmdList);
-		
+
 	// 頂点バッファの設定
 	cmdList->IASetVertexBuffers(0, 1, &vbView);
 	// インデックスバッファの設定
