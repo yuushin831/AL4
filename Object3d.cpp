@@ -6,8 +6,6 @@
 #include<string>
 #include<vector>
 
-
-
 #pragma comment(lib, "d3dcompiler.lib")
 
 using namespace DirectX;
