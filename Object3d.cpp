@@ -9,6 +9,7 @@
 
 
 #pragma comment(lib, "d3dcompiler.lib")
+Object3d::Matrial Object3d::material;
 
 using namespace DirectX;
 using namespace Microsoft::WRL;
@@ -59,7 +60,7 @@ void Object3d::StaticInitialize(ID3D12Device* device, int window_width, int wind
 	InitializeGraphicsPipeline();
 
 	// テクスチャ読み込み
-	LoadTexture();
+	//LoadTexture();
 
 	// モデル生成
 	CreateModel();
@@ -187,7 +188,7 @@ void Object3d::InitializeGraphicsPipeline()
 
 	// 頂点シェーダの読み込みとコンパイル
 	result = D3DCompileFromFile(
-		L"Resources/Shaders/BasicVertexShader.hlsl",	// シェーダファイル名
+		L"OBJVertexShader.hlsl",	// シェーダファイル名
 		nullptr,
 		D3D_COMPILE_STANDARD_FILE_INCLUDE, // インクルード可能にする
 		"main", "vs_5_0",	// エントリーポイント名、シェーダーモデル指定
@@ -210,7 +211,7 @@ void Object3d::InitializeGraphicsPipeline()
 
 	// ピクセルシェーダの読み込みとコンパイル
 	result = D3DCompileFromFile(
-		L"Resources/Shaders/BasicPixelShader.hlsl",	// シェーダファイル名
+		L"OBJPixelShader.hlsl",	// シェーダファイル名
 		nullptr,
 		D3D_COMPILE_STANDARD_FILE_INCLUDE, // インクルード可能にする
 		"main", "ps_5_0",	// エントリーポイント名、シェーダーモデル指定
@@ -298,9 +299,16 @@ void Object3d::InitializeGraphicsPipeline()
 	descRangeSRV.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0); // t0 レジスタ
 
 	// ルートパラメータ
-	CD3DX12_ROOT_PARAMETER rootparams[2];
+	/*CD3DX12_ROOT_PARAMETER rootparams[2];
 	rootparams[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_ALL);
-	rootparams[1].InitAsDescriptorTable(1, &descRangeSRV, D3D12_SHADER_VISIBILITY_ALL);
+	rootparams[1].InitAsDescriptorTable(1, &descRangeSRV, D3D12_SHADER_VISIBILITY_ALL);*/
+
+	CD3DX12_ROOT_PARAMETER rootparams[3];
+	rootparams[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_ALL);
+	rootparams[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
+	rootparams[2].InitAsDescriptorTable(1, &descRangeSRV, D3D12_SHADER_VISIBILITY_ALL);
+
+
 
 	// スタティックサンプラー
 	CD3DX12_STATIC_SAMPLER_DESC samplerDesc = CD3DX12_STATIC_SAMPLER_DESC(0);
@@ -324,15 +332,24 @@ void Object3d::InitializeGraphicsPipeline()
 
 }
 
-void Object3d::LoadTexture()
+bool Object3d::LoadTexture(const std::string& directoryPath, const std::string& filename)
 {
 	HRESULT result = S_FALSE;
 
 	TexMetadata metadata{};
 	ScratchImage scratchImg{};
 
+	string filepath = directoryPath + filename;
+
+	wchar_t wfilepath[128];
+
+	int iBufferSize = MultiByteToWideChar(CP_ACP, 0, filepath.c_str(), -1, wfilepath, _countof(wfilepath));
+
+	
 	// WICテクスチャのロード
-	result = LoadFromWICFile(L"Resources/tex1.png", WIC_FLAGS_NONE, &metadata, scratchImg);
+	//result = LoadFromWICFile(L"Resources/tex1.png", WIC_FLAGS_NONE, &metadata, scratchImg);
+	result = LoadFromWICFile(wfilepath, WIC_FLAGS_NONE, &metadata, scratchImg);
+	
 	assert(SUCCEEDED(result));
 
 	ScratchImage mipChain{};
@@ -393,7 +410,7 @@ void Object3d::LoadTexture()
 		&srvDesc, //テクスチャ設定情報
 		cpuDescHandleSRV
 	);
-
+	return true;
 }
 
 void Object3d::CreateModel()
@@ -403,7 +420,11 @@ void Object3d::CreateModel()
 
 	std::fstream file;
 
-	file.open("Resources/triangle/triangle.obj");
+	//file.open("Resources/triangle/triangle.obj"); direct
+	const string modelname = "triangle_mat";
+	const string filename = modelname + ".obj";
+	const string directoryPath = "Resources/" + modelname + "/";
+	file.open(directoryPath + filename);
 
 	if (file.fail()) {
 		assert(0);
@@ -421,6 +442,14 @@ void Object3d::CreateModel()
 
 		string key;
 		getline(line_stream, key, ' ');
+
+		if (key == "mtllib")
+		{
+			string filename;
+			line_stream >> filename;
+
+			LoadMaterial(directoryPath, filename);
+		}
 
 		if (key == "v")
 		{
@@ -682,15 +711,31 @@ bool Object3d::Initialize()
 	CD3DX12_HEAP_PROPERTIES heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	// リソース設定
 	CD3DX12_RESOURCE_DESC resourceDesc =
-		CD3DX12_RESOURCE_DESC::Buffer((sizeof(ConstBufferData) + 0xff) & ~0xff);
+		CD3DX12_RESOURCE_DESC::Buffer((sizeof(ConstBufferDataB1) + 0xff) & ~0xff);
 
 	HRESULT result;
+
+
 
 	// 定数バッファの生成
 	result = device->CreateCommittedResource(
 		&heapProps, // アップロード可能
 		D3D12_HEAP_FLAG_NONE, &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
-		IID_PPV_ARGS(&constBuff));
+		IID_PPV_ARGS(&constBuffB1));
+	assert(SUCCEEDED(result));
+
+	 resourceDesc =
+		CD3DX12_RESOURCE_DESC::Buffer((sizeof(ConstBufferDataB0) + 0xff) & ~0xff);
+
+	
+
+
+
+	// 定数バッファの生成
+	result = device->CreateCommittedResource(
+		&heapProps, // アップロード可能
+		D3D12_HEAP_FLAG_NONE, &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
+		IID_PPV_ARGS(&constBuffB0));
 	assert(SUCCEEDED(result));
 
 	return true;
@@ -722,11 +767,70 @@ void Object3d::Update()
 	}
 
 	// 定数バッファへデータ転送
-	ConstBufferData* constMap = nullptr;
-	result = constBuff->Map(0, nullptr, (void**)&constMap);
-	constMap->color = color;
+	ConstBufferDataB1* constMap1 = nullptr;
+	result = constBuffB1->Map(0, nullptr, (void**)&constMap1);
+	constMap1->ambient = material.ambient;
+	constMap1->diffuse = material.diffuse;
+	constMap1->alpha = material.alpha;
+	constBuffB1->Unmap(0, nullptr);
+	ConstBufferDataB0* constMap = nullptr;
+	result = constBuffB0->Map(0, nullptr, (void**)&constMap);
 	constMap->mat = matWorld * matView * matProjection;	// 行列の合成
-	constBuff->Unmap(0, nullptr);
+	constBuffB0->Unmap(0, nullptr);
+}
+
+
+void Object3d::LoadMaterial(const std::string& directoryPath, const std::string& filename)
+{
+	std::ifstream file;
+
+	file.open(directoryPath + filename);
+
+	if (file.fail())
+	{
+		assert(0);
+	}
+	string line;
+	while (getline(file, line))
+	{
+		std::istringstream line_stream(line);
+		string key;
+		getline(line_stream, key, ' ');
+		if (key[0] == '\t')
+		{
+			key.erase(key.begin());
+		}
+
+
+		if (key == "newmtl")
+		{
+			line_stream >> material.name;
+		}
+		if (key == "Ka") {
+			line_stream >> material.ambient.x;
+			line_stream >> material.ambient.y;
+			line_stream >> material.ambient.z;
+		}
+		if (key == "Kd")
+		{
+			line_stream >> material.diffuse.x;
+			line_stream >> material.diffuse.y;
+			line_stream >> material.diffuse.z;
+		}
+		if (key == "Ks")
+		{
+			line_stream >> material.diffuse.x;
+			line_stream >> material.diffuse.y;
+			line_stream >> material.diffuse.z;
+		}
+		if (key == "map_Kd")
+		{
+			line_stream >> material.textureFilename;
+
+			LoadTexture(directoryPath, material.textureFilename);
+		}
+	}
+	file.close();
 }
 
 void Object3d::Draw()
@@ -745,10 +849,16 @@ void Object3d::Draw()
 	cmdList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
 
 	// 定数バッファビューをセット
-	cmdList->SetGraphicsRootConstantBufferView(0, constBuff->GetGPUVirtualAddress());
+	//cmdList->SetGraphicsRootConstantBufferView(0, constBuff->GetGPUVirtualAddress());
+	cmdList->SetGraphicsRootConstantBufferView(0, constBuffB0->GetGPUVirtualAddress());
+	cmdList->SetGraphicsRootConstantBufferView(1, constBuffB1->GetGPUVirtualAddress());
+
 	// シェーダリソースビューをセット
-	cmdList->SetGraphicsRootDescriptorTable(1, gpuDescHandleSRV);
+	//cmdList->SetGraphicsRootDescriptorTable(1, gpuDescHandleSRV);
+	cmdList->SetGraphicsRootDescriptorTable(2, gpuDescHandleSRV);
 	// 描画コマンド
 	//cmdList->DrawIndexedInstanced(_countof(indices), 1, 0, 0, 0);
 	cmdList->DrawIndexedInstanced((UINT)indices.size(), 1, 0, 0, 0);
 }
+
+
