@@ -157,22 +157,16 @@ private: // 静的メンバ変数
 
 	// デバイス
 	static ID3D12Device* device;
-	// デスクリプタサイズ
-	static UINT descriptorHandleIncrementSize;
+	
 	// コマンドリスト
 	static ID3D12GraphicsCommandList* cmdList;
 	// ルートシグネチャ
 	static ComPtr<ID3D12RootSignature> rootsignature;
 	// パイプラインステートオブジェクト
 	static ComPtr<ID3D12PipelineState> pipelinestate;
-	// デスクリプタヒープ
-	static ComPtr<ID3D12DescriptorHeap> descHeap;
-	// テクスチャバッファ
-	static ComPtr<ID3D12Resource> texbuff;
-	// シェーダリソースビューのハンドル(CPU)
-	static CD3DX12_CPU_DESCRIPTOR_HANDLE cpuDescHandleSRV;
-	// シェーダリソースビューのハンドル(CPU)
-	static CD3DX12_GPU_DESCRIPTOR_HANDLE gpuDescHandleSRV;
+	
+	
+	
 	// ビュー行列
 	static XMMATRIX matView;
 	// 射影行列
@@ -217,15 +211,7 @@ private:// 静的メンバ関数
 	/// <returns>成否</returns>
 	static void InitializeGraphicsPipeline();
 
-	/// <summary>
-	/// テクスチャ読み込み
-	/// </summary>
-	static bool LoadTexture(const std::string& directoryPath,const std::string&filename);
 
-	/// <summary>
-	/// マテリアル読み込み
-	/// </summary>
-	static void LoadMaterial(const std::string& directoryPath, const std::string& filename);
 
 	/// <summary>
 	/// モデル作成

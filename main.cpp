@@ -1,6 +1,7 @@
 ﻿#include "WinApp.h"
 #include "DirectXCommon.h"
 #include "GameScene.h"
+#include"Model.h"
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE,HINSTANCE,LPSTR,int)
@@ -31,6 +32,7 @@ int WINAPI WinMain(HINSTANCE,HINSTANCE,LPSTR,int)
 	Object3d::StaticInitialize(dxCommon->GetDevice(), WinApp::kWindowWidth, WinApp::kWindowHeight);
 #pragma endregion
 
+
 	// ゲームシーンの初期化
 	gameScene = new GameScene();
 	gameScene->Initialize(dxCommon, input);
@@ -45,6 +47,7 @@ int WINAPI WinMain(HINSTANCE,HINSTANCE,LPSTR,int)
 		input->Update();
 		// ゲームシーンの毎フレーム処理
 		gameScene->Update();
+
 
 		// 描画開始
 		dxCommon->PreDraw();
