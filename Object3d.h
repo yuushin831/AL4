@@ -137,6 +137,24 @@ public: // 静的メンバ関数
 	static void CameraMoveVector(XMFLOAT3 move);
 
 private: // 静的メンバ変数
+
+	// 頂点バッファ
+	static ComPtr<ID3D12Resource> vertBuff;
+	// 頂点バッファビュー
+	static D3D12_VERTEX_BUFFER_VIEW vbView;
+	// インデックスバッファ
+	static ComPtr<ID3D12Resource> indexBuff;
+	// インデックスバッファビュー
+	static D3D12_INDEX_BUFFER_VIEW ibView;
+	// 頂点データ配列
+	//static VertexPosNormalUv vertices[vertexCount];
+	static std::vector<VertexPosNormalUv> vertices;
+	// 頂点インデックス配列
+	//static unsigned short indices[planeCount * 3];
+	static std::vector<unsigned short> indices;
+
+
+
 	// デバイス
 	static ID3D12Device* device;
 	// デスクリプタサイズ
@@ -149,10 +167,6 @@ private: // 静的メンバ変数
 	static ComPtr<ID3D12PipelineState> pipelinestate;
 	// デスクリプタヒープ
 	static ComPtr<ID3D12DescriptorHeap> descHeap;
-	// 頂点バッファ
-	static ComPtr<ID3D12Resource> vertBuff;
-	// インデックスバッファ
-	static ComPtr<ID3D12Resource> indexBuff;
 	// テクスチャバッファ
 	static ComPtr<ID3D12Resource> texbuff;
 	// シェーダリソースビューのハンドル(CPU)
@@ -169,16 +183,13 @@ private: // 静的メンバ変数
 	static XMFLOAT3 target;
 	// 上方向ベクトル
 	static XMFLOAT3 up;
-	// 頂点バッファビュー
-	static D3D12_VERTEX_BUFFER_VIEW vbView;
-	// インデックスバッファビュー
-	static D3D12_INDEX_BUFFER_VIEW ibView;
-	// 頂点データ配列
-	//static VertexPosNormalUv vertices[vertexCount];
-	static std::vector<VertexPosNormalUv> vertices;
-	// 頂点インデックス配列
-	//static unsigned short indices[planeCount * 3];
-	static std::vector<unsigned short> indices;
+
+	
+
+
+
+	
+	
 
 	/*
 		vector 配列の強化版

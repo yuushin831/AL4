@@ -61,6 +61,7 @@ private: // メンバ変数
 	/// <summary>
 	/// ゲームシーン用
 	/// </summary>
+	//Model* modelFighter = nullptr;
 	Sprite* spriteBG = nullptr;
 	Object3d* object3d = nullptr;
 };

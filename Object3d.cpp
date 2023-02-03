@@ -26,8 +26,11 @@ ID3D12GraphicsCommandList* Object3d::cmdList = nullptr;
 ComPtr<ID3D12RootSignature> Object3d::rootsignature;
 ComPtr<ID3D12PipelineState> Object3d::pipelinestate;
 ComPtr<ID3D12DescriptorHeap> Object3d::descHeap;
+
 ComPtr<ID3D12Resource> Object3d::vertBuff;
+
 ComPtr<ID3D12Resource> Object3d::indexBuff;
+
 ComPtr<ID3D12Resource> Object3d::texbuff;
 CD3DX12_CPU_DESCRIPTOR_HANDLE Object3d::cpuDescHandleSRV;
 CD3DX12_GPU_DESCRIPTOR_HANDLE Object3d::gpuDescHandleSRV;
@@ -36,11 +39,15 @@ XMMATRIX Object3d::matProjection{};
 XMFLOAT3 Object3d::eye = { 0, 0, -50.0f };
 XMFLOAT3 Object3d::target = { 0, 0, 0 };
 XMFLOAT3 Object3d::up = { 0, 1, 0 };
+
 D3D12_VERTEX_BUFFER_VIEW Object3d::vbView{};
+
 D3D12_INDEX_BUFFER_VIEW Object3d::ibView{};
+
 //Object3d::VertexPosNormalUv Object3d::vertices[vertexCount];
 //unsigned short Object3d::indices[planeCount * 3];
 std::vector<Object3d::VertexPosNormalUv> Object3d::vertices;
+
 std::vector<unsigned short> Object3d::indices;
 
 void Object3d::StaticInitialize(ID3D12Device* device, int window_width, int window_height)
@@ -642,11 +649,13 @@ void Object3d::CreateModel()
 	// リソース設定
 	CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeVB);
 
+
 	// 頂点バッファ生成
 	result = device->CreateCommittedResource(
 		&heapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc/*&CD3DX12_RESOURCE_DESC::Buffer(sizeVB)*/, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
 		IID_PPV_ARGS(&vertBuff));
 	assert(SUCCEEDED(result));
+
 
 	// 頂点バッファへのデータ転送
 	VertexPosNormalUv* vertMap = nullptr;
@@ -668,6 +677,7 @@ void Object3d::CreateModel()
 	resourceDesc.Width = sizeIB;
 
 	resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeIB);
+
 	// インデックスバッファ生成
 	result = device->CreateCommittedResource(
 		&heapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc/*&CD3DX12_RESOURCE_DESC::Buffer(sizeIB)*/, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
@@ -677,6 +687,7 @@ void Object3d::CreateModel()
 	unsigned short* indexMap = nullptr;
 	result = indexBuff->Map(0, nullptr, (void**)&indexMap);
 	if (SUCCEEDED(result)) {
+
 
 		// 全インデックスに対して
 		//for (int i = 0; i < _countof(indices); i++)
@@ -715,8 +726,6 @@ bool Object3d::Initialize()
 
 	HRESULT result;
 
-
-
 	// 定数バッファの生成
 	result = device->CreateCommittedResource(
 		&heapProps, // アップロード可能
@@ -726,10 +735,6 @@ bool Object3d::Initialize()
 
 	 resourceDesc =
 		CD3DX12_RESOURCE_DESC::Buffer((sizeof(ConstBufferDataB0) + 0xff) & ~0xff);
-
-	
-
-
 
 	// 定数バッファの生成
 	result = device->CreateCommittedResource(
